@@ -1,49 +1,33 @@
-const input = document.getElementById("taskInput");
-const addBtn = document.getElementById("addBtn");
-const list = document.getElementById("taskList");
+const input = document.querySelector("#taskInput");
+const addBtn = document.querySelector("#addBtn");
+const list = document.querySelector("#taskList");
 
-let tasks = [];
-
-function loadTasks() {
-    const storedTasks = localStorage.getItem("tasks");
-
-    if (storedTasks) {
-        tasks = JSON.parse(storedTasks);
-        tasks.forEach(task => createTaskElement(task.text, task.completed));
-    }
-}
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
 function saveTasks() {
     localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
-function createTaskElement(text, completed = false) {
+function createTaskElement(task) {
     const listItem = document.createElement("li");
-    listItem.textContent = text;
-
-    if (completed) {
+    listItem.textContent = task.text;
+    if (task.completed) {
         listItem.classList.add("completed");
     }
 
-    listItem.addEventListener("click", function () {
-        listItem.classList.toggle("completed");
-
-        const task = tasks.find(t => t.text === text);
-        task.completed = !task.completed;
-
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "Delete";
+    deleteBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        listItem.remove();
+        tasks = tasks.filter(t => t.id !== task.id);
         saveTasks();
     });
 
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "Delete";
-
-    deleteBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-
-        listItem.remove();
-
-        tasks = tasks.filter(t => t.text !== text);
-
+    listItem.addEventListener("click", function () {
+        listItem.classList.toggle("completed");
+        const t = tasks.find(t => t.id === task.id);
+        t.completed = !t.completed;
         saveTasks();
     });
 
@@ -55,18 +39,16 @@ addBtn.addEventListener("click", function () {
     const text = input.value.trim();
     if (text === "") return;
 
-    const taskObj = {
+    const newTask = {
+        id: Date.now(),
         text: text,
         completed: false
     };
 
-    tasks.push(taskObj);
-
-    createTaskElement(text, false);
-
+    tasks.push(newTask);
+    createTaskElement(newTask);
     saveTasks();
-
     input.value = "";
 });
 
-loadTasks();
+tasks.forEach(createTaskElement);
