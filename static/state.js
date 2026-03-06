@@ -24,6 +24,10 @@ export function deleteTask(id) {
 
 export function toggleTask(id) {
     const task = tasks.find(task => task.id === id);
+        if (!task) {
+        console.warn("Task not found for id:", id);
+        return;
+    }
     task.completed = !task.completed;
     saveTasks(tasks);
 }
